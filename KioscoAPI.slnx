@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Kiosco.API/Kiosco.API.csproj" />
+  <Project Path="Kiosco.Domain/Kiosco.Domain.csproj" />
+  <Project Path="Kiosco.Infraestructura/Kiosco.Infraestructura.csproj" />
+  <Project Path="KioscoAplicacion/Kiosco.Aplicacion.csproj" />
+</Solution>
