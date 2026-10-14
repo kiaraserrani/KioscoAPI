@@ -14,13 +14,16 @@ namespace Kiosco.API.Controllers
     {
         private readonly ProductoService _productoService;
         private readonly ISender _sender;
+        private readonly DescuentoService _descuentoService;
 
         public ProductosController(
             ProductoService productoService,
-            ISender sender)
+            ISender sender,
+            DescuentoService descuentoService)
         {
             _productoService = productoService;
             _sender = sender;
+            _descuentoService = descuentoService;
         }
 
         [HttpGet]
@@ -44,6 +47,44 @@ namespace Kiosco.API.Controllers
             }
 
             return Ok(resultado.Value);
+        }
+
+        // NUEVO ENDPOINT: Aplicar descuentos con Strategy y Result
+        [HttpGet("{id}/precio-final")]
+        public async Task<IActionResult> ObtenerPrecioFinal(
+            int id,
+            [FromQuery] string tipoDescuento)
+        {
+            var resultadoProducto = await _sender.Send(
+                new ObtenerProductoPorIdQuery(id)
+            );
+
+            if (!resultadoProducto.IsSuccess)
+            {
+                return NotFound(resultadoProducto.Error);
+            }
+
+            var producto = resultadoProducto.Value!;
+
+            var resultadoDescuento =
+                _descuentoService.CalcularPrecioFinal(
+                    producto.Precio,
+                    tipoDescuento
+                );
+
+            if (!resultadoDescuento.IsSuccess)
+            {
+                return BadRequest(resultadoDescuento.Error);
+            }
+
+            return Ok(new
+            {
+                ProductoId = producto.Id,
+                Nombre = producto.Nombre,
+                PrecioOriginal = producto.Precio,
+                TipoDescuento = tipoDescuento,
+                PrecioFinal = resultadoDescuento.Value
+            });
         }
 
         [HttpPost]
